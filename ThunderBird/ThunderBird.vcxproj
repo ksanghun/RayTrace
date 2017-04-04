@@ -67,6 +67,9 @@
   <ItemGroup>
     <ClCompile Include="RayTrace.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="kernel.cu" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
