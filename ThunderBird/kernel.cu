@@ -198,40 +198,40 @@ __host__ __device__ void trace(Vec3f rayorig, Vec3f raydir, const int depth, Vec
 			nhit.z = -nhit.z;
 			inside = true;
 		}
-	//	if ((d_sphere[idx].getTransparency() > 0 || d_sphere[idx].getReflection() > 0) && depth < MAX_RAY_DEPTH) {
-		//	float facingratio = -raydir.dot(nhit);
-			//// change the mix value to tweak the effect
-			//float fresneleffect = mix(pow(1 - facingratio, 3), 1, 0.1);
-		//	float fresneleffect = 1.0f;
-			//// compute reflection direction (not need to normalize because all vectors
-			//// are already normalized)
-		//	Vec3f refldir = raydir - nhit * 2 * raydir.dot(nhit);
-	//		refldir.normalize();
-			////Vec3f reflection = trace(phit + nhit * bias, refldir, depth + 1);
-			//trace(phit + nhit * bias, refldir, depth + 1, pixel, k);
-			//Vec3f refraction;
-			//refraction.init(0);
+		if ((d_sphere[idx].getTransparency() > 0 || d_sphere[idx].getReflection() > 0) && depth < MAX_RAY_DEPTH) {
+			float facingratio = -raydir.dot(nhit);
+			// change the mix value to tweak the effect
+			float fresneleffect = mix(pow(1 - facingratio, 3), 1, 0.1);
+//			float fresneleffect = 1.0f;
+			// compute reflection direction (not need to normalize because all vectors
+			// are already normalized)
+			Vec3f refldir = raydir - nhit * 2 * raydir.dot(nhit);
+			refldir.normalize();
+	//		Vec3f reflection = trace(phit + nhit * bias, refldir, depth + 1, pixel, k);
+			trace(phit + nhit * bias, refldir, depth + 1, pixel, k);
+			Vec3f refraction;
+			refraction.init(0);
 			// if the sphere is also transparent compute refraction ray (transmission)
-			//if (d_sphere[idx].getTransparency()) {
-			//	float ior = 1.1, eta = (inside) ? ior : 1 / ior; // are we inside or outside the surface?
-			//	float cosi = -nhit.dot(raydir);
-			//	float k = 1 - eta * eta * (1 - cosi * cosi);
-			//	Vec3f refrdir = raydir * eta + nhit * (eta *  cosi - sqrt(k));
-			//	refrdir.normalize();
-			//	//	refraction = trace(phit - nhit * bias, refrdir, spheres, depth + 1);
-			//	trace(phit + nhit * bias, refldir, depth + 1, pixel, k);
-			//}
+			if (d_sphere[idx].getTransparency()) {
+				float ior = 1.1, eta = (inside) ? ior : 1 / ior; // are we inside or outside the surface?
+				float cosi = -nhit.dot(raydir);
+				float k = 1 - eta * eta * (1 - cosi * cosi);
+				Vec3f refrdir = raydir * eta + nhit * (eta *  cosi - sqrt(k));
+				refrdir.normalize();
+				//	refraction = trace(phit - nhit * bias, refrdir, spheres, depth + 1);
+				trace(phit + nhit * bias, refldir, depth + 1, pixel, k);
+			}
 			// the result is a mix of reflection and refraction (if the sphere is transparent)
-		//	Vec3f reflection = pixel[k];
-		//	surfaceColor = (
-		//		reflection * fresneleffect +
-		//		refraction * (1 - fresneleffect) * d_sphere[idx].getTransparency()) * d_sphere[idx].getSurfaceCr();
+			Vec3f reflection = pixel[k];
+			surfaceColor = (
+				reflection * fresneleffect +
+				refraction * (1 - fresneleffect) * d_sphere[idx].getTransparency()) * d_sphere[idx].getSurfaceCr();
 
-		//	Vec3f refldir = raydir - nhit * 2 * raydir.dot(nhit);
-		//	trace(phit + nhit * bias, refldir, depth + 1, pixel, k);
-		//	surfaceColor.init(0.0f, 0.0f, 1.0f);
-	//	}
-	//	else {
+			//Vec3f refldir = raydir - nhit * 2 * raydir.dot(nhit);
+			//trace(phit + nhit * bias, refldir, depth + 1, pixel, k);
+			//surfaceColor.init(0.0f, 0.0f, 1.0f);
+		}
+		else {
 			// it's a diffuse object, no need to raytrace any further
 			for (unsigned i = 0; i < M_SPHERES; ++i) {
 				if (d_sphere[i].getEmissionCr().x > 0) {
@@ -254,7 +254,7 @@ __host__ __device__ void trace(Vec3f rayorig, Vec3f raydir, const int depth, Vec
 					if (fCoff < 0)	fCoff = 0.0f;
 					surfaceColor += d_sphere[idx].getSurfaceCr() * transmission *	fCoff * d_sphere[i].getEmissionCr();
 				}
-			//}
+			}
 		}
 		pixel[k] = surfaceColor + d_sphere[idx].getEmissionCr();
 		return;
